@@ -26,6 +26,7 @@ export default function Home() {
   // Shop / quote level info
   const [shopName, setShopName] = useState("VINQuoter Demo Shop");
   const [quoteNumber, setQuoteNumber] = useState("");
+  const [shopLogoUrl, setShopLogoUrl] = useState("");
 
   // Form inputs
   const [vin, setVin] = useState("");
@@ -35,6 +36,12 @@ export default function Home() {
   const [notes, setNotes] = useState("");
   const [partsMarkupPercent, setPartsMarkupPercent] = useState<number>(0);
   const [marginPercent, setMarginPercent] = useState<number>(0);
+  const [terms, setTerms] = useState(
+    "This estimate is based on current parts pricing and standard repair times. " +
+      "Actual invoice may vary based on additional diagnostics, parts availability, " +
+      "and unforeseen repairs. Customer authorizes repairs as listed. " +
+      "Estimate valid for 30 days."
+  );
 
   // App state
   const [loading, setLoading] = useState(false);
@@ -92,6 +99,7 @@ export default function Home() {
     setQuote(null);
     setEditableRepairs([]);
     setError(null);
+    // keep shopName, logo, and terms – they’re more like shop settings
   }
 
   function handleRepairChange(
@@ -180,11 +188,21 @@ export default function Home() {
         {/* Header */}
         <div className="flex justify-between items-start gap-4 mb-6 print:flex-row print:items-start">
           <div>
+            {shopLogoUrl && (
+              <img
+                src={shopLogoUrl}
+                alt={shopName || "Shop logo"}
+                className="h-12 w-auto mb-2"
+              />
+            )}
             <h1 className="text-3xl font-bold mb-1">
               {shopName || "Shop Name"}
             </h1>
             <p className="text-gray-600 text-sm">
-              Powered by VINQuoter.ai – Heavy-duty VIN-based quoting
+              Heavy-duty service estimate
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Powered by <span className="font-semibold">VINQuoter.ai</span>
             </p>
           </div>
 
@@ -208,7 +226,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Shop & quote inputs */}
+        {/* Shop & quote inputs (not printed) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 print:hidden">
           <div className="md:col-span-2">
             <label className="block mb-2 font-medium">Shop Name</label>
@@ -229,6 +247,23 @@ export default function Home() {
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+        </div>
+
+        <div className="mb-4 print:hidden">
+          <label className="block mb-2 font-medium">
+            Shop Logo URL (optional)
+          </label>
+          <input
+            type="text"
+            value={shopLogoUrl}
+            onChange={(e) => setShopLogoUrl(e.target.value)}
+            placeholder="https://example.com/logo.png"
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Paste a public image URL for now. Direct logo uploads will come
+            later.
+          </p>
         </div>
 
         <p className="text-gray-600 mb-4 text-sm print:hidden">
@@ -320,6 +355,19 @@ export default function Home() {
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+        </div>
+
+        {/* Terms editor (not printed controls, but terms content WILL print) */}
+        <div className="mb-4 print:hidden">
+          <label className="block mb-2 font-medium">Terms & Conditions</label>
+          <textarea
+            value={terms}
+            onChange={(e) => setTerms(e.target.value)}
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] text-sm"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            These will appear at the bottom of the printed quote.
+          </p>
         </div>
 
         {error && (
@@ -503,6 +551,12 @@ export default function Home() {
                 <span>Final Quote Total:</span>
                 <span>${computedTotals.finalGrandTotal.toFixed(2)}</span>
               </div>
+            </div>
+
+            {/* Terms display */}
+            <div className="mt-4 text-xs text-gray-500 border-t pt-3">
+              <div className="font-semibold mb-1">Terms &amp; Conditions</div>
+              <p className="whitespace-pre-wrap">{terms}</p>
             </div>
           </div>
         )}
