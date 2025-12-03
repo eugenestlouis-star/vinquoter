@@ -23,6 +23,11 @@ type QuoteResponse = {
 };
 
 export default function Home() {
+  // Shop / quote level info
+  const [shopName, setShopName] = useState("VINQuoter Demo Shop");
+  const [quoteNumber, setQuoteNumber] = useState("");
+
+  // Form inputs
   const [vin, setVin] = useState("");
   const [laborRate, setLaborRate] = useState<number>(165);
   const [customerName, setCustomerName] = useState("");
@@ -31,6 +36,7 @@ export default function Home() {
   const [partsMarkupPercent, setPartsMarkupPercent] = useState<number>(0);
   const [marginPercent, setMarginPercent] = useState<number>(0);
 
+  // App state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
@@ -74,6 +80,20 @@ export default function Home() {
     }
   }
 
+  function handleReset() {
+    setVin("");
+    setLaborRate(165);
+    setCustomerName("");
+    setUnitNumber("");
+    setNotes("");
+    setPartsMarkupPercent(0);
+    setMarginPercent(0);
+    setQuoteNumber("");
+    setQuote(null);
+    setEditableRepairs([]);
+    setError(null);
+  }
+
   function handleRepairChange(
     index: number,
     field: "operation" | "srtHours" | "partsCost",
@@ -93,7 +113,6 @@ export default function Home() {
         line.partsCost = isNaN(num) ? 0 : num;
       }
 
-      // Recalculate costs
       line.laborCost = line.srtHours * line.laborRate;
       line.totalCost = line.laborCost + line.partsCost;
 
@@ -157,25 +176,67 @@ export default function Home() {
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
-      <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-4xl print:max-w-full">
-        <div className="flex justify-between items-start gap-4 mb-4 print:flex-col print:items-start">
+      <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-4xl print:shadow-none print:rounded-none print:p-4">
+        {/* Header */}
+        <div className="flex justify-between items-start gap-4 mb-6 print:flex-row print:items-start">
           <div>
-            <h1 className="text-4xl font-bold mb-2">VINQuoter.ai</h1>
-            <p className="text-gray-600 max-w-xl">
-              Enter a VIN and shop labor rate to generate mock repair operations,
-              SRTs, and cost breakdowns. (Real data will come later.)
+            <h1 className="text-3xl font-bold mb-1">
+              {shopName || "Shop Name"}
+            </h1>
+            <p className="text-gray-600 text-sm">
+              Powered by VINQuoter.ai – Heavy-duty VIN-based quoting
             </p>
           </div>
 
-          <button
-            onClick={() => window.print()}
-            className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-900 print:hidden"
-          >
-            Print / Save as PDF
-          </button>
+          <div className="flex flex-col items-end gap-2 print:items-end">
+            <div className="text-sm">
+              <span className="font-semibold">Quote #:</span>{" "}
+              {quoteNumber || <span className="text-gray-400">N/A</span>}
+            </div>
+            <button
+              onClick={() => window.print()}
+              className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-900 print:hidden"
+            >
+              Print / Save as PDF
+            </button>
+            <button
+              onClick={handleReset}
+              className="text-xs text-gray-500 underline mt-1 print:hidden"
+            >
+              Reset form
+            </button>
+          </div>
         </div>
 
-        {/* Top form section */}
+        {/* Shop & quote inputs */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 print:hidden">
+          <div className="md:col-span-2">
+            <label className="block mb-2 font-medium">Shop Name</label>
+            <input
+              type="text"
+              value={shopName}
+              onChange={(e) => setShopName(e.target.value)}
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block mb-2 font-medium">Quote #</label>
+            <input
+              type="text"
+              value={quoteNumber}
+              onChange={(e) => setQuoteNumber(e.target.value)}
+              placeholder="e.g. Q-1027"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <p className="text-gray-600 mb-4 text-sm print:hidden">
+          Enter a VIN and shop labor rate to generate mock repair operations,
+          SRTs, and cost breakdowns. (Real data will come later.)
+        </p>
+
+        {/* VIN + labor */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="md:col-span-2">
             <label className="block mb-2 font-medium">VIN</label>
@@ -200,6 +261,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Customer / unit */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block mb-2 font-medium">Customer Name</label>
@@ -224,6 +286,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Notes */}
         <div className="mb-4">
           <label className="block mb-2 font-medium">Internal Notes</label>
           <textarea
@@ -234,12 +297,10 @@ export default function Home() {
           />
         </div>
 
-        {/* Markup / margin controls */}
+        {/* Markup / margin */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block mb-2 font-medium">
-              Parts Markup (%)
-            </label>
+            <label className="block mb-2 font-medium">Parts Markup (%)</label>
             <input
               type="number"
               value={partsMarkupPercent}
@@ -267,13 +328,15 @@ export default function Home() {
           </div>
         )}
 
-        <button
-          onClick={handleGetQuote}
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white p-3 rounded-lg font-semibold mb-4 print:hidden"
-        >
-          {loading ? "Generating quote..." : "Get Repair Quote"}
-        </button>
+        <div className="flex gap-3 mb-4 print:hidden">
+          <button
+            onClick={handleGetQuote}
+            disabled={loading}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white p-3 rounded-lg font-semibold"
+          >
+            {loading ? "Generating quote..." : "Get Repair Quote"}
+          </button>
+        </div>
 
         {!quote && !loading && (
           <p className="text-gray-500 text-sm text-center">
@@ -282,7 +345,7 @@ export default function Home() {
           </p>
         )}
 
-        {/* Quote display + editable lines */}
+        {/* Quote summary */}
         {quote && (
           <div className="mt-6 border-t pt-4">
             <h2 className="text-2xl font-semibold mb-2">Quote Summary</h2>
@@ -310,6 +373,7 @@ export default function Home() {
               </div>
             )}
 
+            {/* Line items */}
             <div className="flex justify-between items-center mb-2 print:hidden">
               <h3 className="font-semibold">Line Items</h3>
               <button
@@ -405,6 +469,7 @@ export default function Home() {
               )}
             </div>
 
+            {/* Totals */}
             <div className="bg-blue-50 rounded-lg p-3 text-sm space-y-1">
               <div className="flex justify-between">
                 <span>Base Labor Total:</span>
